@@ -37,5 +37,22 @@ namespace DatadogTakeHome.Core.Model
         /// </summary>
         [Name("bytes")]
         public int RequestSizeBytes { get; set; }
+
+        public override bool Equals(object obj)
+        {
+            return obj is LogLine line &&
+                   RemoteHost == line.RemoteHost &&
+                   Rfc931 == line.Rfc931 &&
+                   Authuser == line.Authuser &&
+                   TimestampSeconds == line.TimestampSeconds &&
+                   Request == line.Request &&
+                   HttpStatusCode == line.HttpStatusCode &&
+                   RequestSizeBytes == line.RequestSizeBytes;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(RemoteHost, Rfc931, Authuser, TimestampSeconds, Request, HttpStatusCode, RequestSizeBytes);
+        }
     }
 }

@@ -18,15 +18,18 @@ namespace DatadogTakeHome
             var orchestrator = new Orchestrator(
                 new HttpRequestParser(),
                 logger,
-                new List<ILogAggregator> { 
+                new List<ILogAggregator> {
                     new PeriodicSummaryReport(10),
                     new AverageHitAlert(TWO_MINUTES_DURATION_SECONDS, 10),
                 }
             );
 
+
+
             try
             {
-                using (var parser = new StreamingCsvParser())
+                //Stream inputStream = Console.OpenStandardInput();
+                using (var parser = new StreamingCsvParser(logger))
                 {
                     var lines = parser.Parse("sample_csv.txt");
 
