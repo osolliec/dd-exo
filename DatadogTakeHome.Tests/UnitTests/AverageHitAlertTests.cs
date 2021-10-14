@@ -36,7 +36,7 @@ namespace DatadogTakeHome.Tests.UnitTests
             {
                 alert.Collect(BuildLogLine(i % 5), BuildParsedRequest());
             }
-            
+
             // we see for the first time the timestamp 3
             alert.AdvanceTime(3);
 
@@ -77,7 +77,7 @@ namespace DatadogTakeHome.Tests.UnitTests
         {
             // the alert is already firing
             var alert = BuildFiringAlert();
-            
+
             // empty the message
             alert.GetMessage();
 
@@ -162,7 +162,7 @@ namespace DatadogTakeHome.Tests.UnitTests
         private AverageHitAlert BuildFiringAlert()
         {
             var alert = new AverageHitAlert(2, 2);
-            
+
             alert.AdvanceTime(1);
 
             for (int i = 0; i < 10; i++)
@@ -171,7 +171,7 @@ namespace DatadogTakeHome.Tests.UnitTests
             }
 
             alert.AdvanceTime(3);
-            
+
             return alert;
         }
         private LogLine BuildLogLine(long timestamp = 0, int httpCode = 200)

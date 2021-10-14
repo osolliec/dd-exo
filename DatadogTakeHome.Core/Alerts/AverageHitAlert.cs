@@ -7,7 +7,7 @@ namespace DatadogTakeHome.Core.Alerts
 {
     /// <summary>
     /// This is the class that implements the guidelines of "Whenever total traffic for the past 2 minutes exceeds a certain number on average".
-    /// 
+    ///
     /// It is configurable to allow changing the window size, and also the average hit threshold.
     /// </summary>
     public class AverageHitAlert : ILogAggregator
@@ -63,7 +63,7 @@ namespace DatadogTakeHome.Core.Alerts
 
         /// <summary>
         /// Aggregates events that are not too late.
-        /// 
+        ///
         /// Events that are rejected are the ones older than _previousMaxTimestamp - _windowDurationSeconds.
         /// </summary>
         /// <param name="logLine"></param>

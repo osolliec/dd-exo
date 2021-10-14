@@ -20,7 +20,7 @@ namespace DatadogTakeHome.Core
         /// <returns></returns>
         public string GetMessage();
         /// <summary>
-        /// Indicates that the current report has a message ready for display. 
+        /// Indicates that the current report has a message ready for display.
         /// </summary>
         /// <returns></returns>
         public bool HasMessage();

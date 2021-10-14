@@ -17,7 +17,7 @@ namespace DatadogTakeHome.Tests.UnitTests
             var report = new PeriodicSummaryReport(2);
             var logLine = BuildLogLine(1);
             var parsedRequest = BuildParsedRequest();
-            
+
             report.AdvanceTime(1);
 
             report.Collect(logLine, parsedRequest);
@@ -78,7 +78,7 @@ namespace DatadogTakeHome.Tests.UnitTests
             report.AdvanceTime(1);
 
             report.Collect(BuildLogLine(1), parsedRequest);
-            
+
             report.AdvanceTime(2);
 
             // old event relative to max timestamp seen, but it's still valid
@@ -109,7 +109,7 @@ namespace DatadogTakeHome.Tests.UnitTests
             report.AdvanceTime(12);
 
             // this event won't be collected in the current message
-            report.Collect(BuildLogLine(12), parsedRequest);           
+            report.Collect(BuildLogLine(12), parsedRequest);
 
             var message = report.GetMessage();
 
@@ -170,7 +170,7 @@ namespace DatadogTakeHome.Tests.UnitTests
             report.AdvanceTime(3);
 
             var message = report.GetMessage();
-            
+
             Assert.Contains("SECTION: /api HITS: 1", message);
             Assert.Contains("SECTION: /user HITS: 1", message);
         }
@@ -190,7 +190,7 @@ namespace DatadogTakeHome.Tests.UnitTests
                     report.Collect(BuildLogLine(1), BuildParsedRequest($"/api-{i}"));
                 }
             }
-            
+
             report.AdvanceTime(3);
 
             Assert.True(StringEqualWithoutSpace(

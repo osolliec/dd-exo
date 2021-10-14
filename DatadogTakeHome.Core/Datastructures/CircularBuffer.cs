@@ -27,7 +27,7 @@ namespace DatadogTakeHome.Core.Datastructures
         public void Increment(long key)
         {
             long index = Index(key);
-            
+
             _buffer[index] = _buffer[index] + 1;
 
             _total++;

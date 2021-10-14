@@ -8,13 +8,13 @@ namespace DatadogTakeHome.Core.Stats
 {
     /// <summary>
     /// This is the class that handles the guidelines' "For every 10 seconds of logs, display debug information".
-    /// 
+    ///
     /// Every periodDurationSeconds seconds, it will:
     ///     1° Display information about the previous period
     ///     2° Clear the previous information
-    /// 
+    ///
     /// It accepts a period duration as parameter should we want to change the 10 seconds to something else.
-    /// 
+    ///
     /// It will accept late events (events later than the maxTimestamp), but no later than maxTimestamp - periodDurationSeconds.
     /// </summary>
     public class PeriodicSummaryReport : ILogAggregator
@@ -54,11 +54,11 @@ namespace DatadogTakeHome.Core.Stats
 
         /// <summary>
         /// Aggregate the raw CSV data into a human friendly display message.
-        /// 
+        ///
         /// The way it works is the following:
         /// 1° Checks whether we can publish the message (in other words, if the time for next report is overdue).
         /// 2° Aggregates data if it is not too late (we reject messages that are older than the current window of time)
-        /// 
+        ///
         /// </summary>
         /// <param name="logLine"></param>
         /// <param name="parsedRequest"></param>

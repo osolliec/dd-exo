@@ -9,8 +9,8 @@ namespace DatadogTakeHome.Core.Datastructures
     /// <summary>
     /// C# doesn't ship its own PriorityQueue (yet: it should arrive in .NET CORE 6).
     /// I want to write one to reduce the complexity of the ordering of the section hits; instead of o(nlogn) by sorting the whole section list, we can go down to o(nlogk)
-    /// 
-    /// It's based on a max binary heap, implemented with an array of a tuple (int, T), int being the priority of the object. 
+    ///
+    /// It's based on a max binary heap, implemented with an array of a tuple (int, T), int being the priority of the object.
     /// </summary>
     /// <typeparam name="T"></typeparam>
     public class MinPriorityQueue<T>
@@ -136,7 +136,7 @@ namespace DatadogTakeHome.Core.Datastructures
 
             // "empty" the rightmost element
             _tree[_size - 1] = (_priorityFillValue, default(T));
-            
+
             _size--;
 
             HeapifyDown(0);
