@@ -11,12 +11,10 @@ This project is my (Olivier Solliec) take home assignment for my datadog applica
 
 ## Not using docker
 
-### Prerequisites
-
-- [.NET sdk 5.0](https://dotnet.microsoft.com/download/dotnet/5.0)
+Prerequisite: [.NET sdk 5.0](https://dotnet.microsoft.com/download/dotnet/5.0)
 
     dotnet publish --output out
-    cat sample_csv.txt | /out/DatadogTakeHome
+    cat sample_csv.txt | out/DatadogTakeHome
 
 ## Usage
 
