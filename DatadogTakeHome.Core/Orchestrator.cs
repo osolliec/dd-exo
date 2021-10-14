@@ -39,15 +39,19 @@ namespace DatadogTakeHome.Core
 
         /// <summary>
         /// Ingest the log line, and pass it to all alerts & reports.
+        /// Will ignore bad log lines, if we can't parse their sections.
         /// </summary>
         /// <param name="logLine"></param>
         public void Collect(LogLine logLine)
         {
+            if (!_httpRequestParser.TryParse(logLine.Request, out var parsedRequest))
+            {
+                _logger.Log(LogLevel.Error, null, $"Could not parse request {logLine.Request}. Ignoring.");
+                return;
+            }
+            
             long previousTimestamp = _maxTimestampSeenSoFar;
-
             _maxTimestampSeenSoFar = Math.Max(_maxTimestampSeenSoFar, logLine.TimestampSeconds);
-
-            var parsedRequest = _httpRequestParser.Parse(logLine.Request);
 
             foreach (var _logAggregator in _logAggregators)
             {

@@ -16,7 +16,7 @@ namespace DatadogTakeHome.Tests.UnitTests
         {
             var parser = BuildParser();
 
-            var request = parser.Parse("GET /api/help HTTP/1.0");
+            parser.TryParse("GET /api/help HTTP/1.0", out var request);
 
             Assert.Equal("GET", request.HttpVerb);
             Assert.Equal("/api/help", request.Path);
@@ -29,7 +29,7 @@ namespace DatadogTakeHome.Tests.UnitTests
         {
             var parser = BuildParser();
 
-            var request = parser.Parse("GET /api/help/a/very/long/path/indeed HTTP/1.0");
+            parser.TryParse("GET /api/help/a/very/long/path/indeed HTTP/1.0", out var request);
 
             Assert.Equal("/api", request.Section);
         }
@@ -39,7 +39,7 @@ namespace DatadogTakeHome.Tests.UnitTests
         {
             var parser = BuildParser();
 
-            var request = parser.Parse("GET /api HTTP/1.0");
+            parser.TryParse("GET /api HTTP/1.0", out var request);
 
             Assert.Equal("/api", request.Section);
         }
@@ -49,7 +49,7 @@ namespace DatadogTakeHome.Tests.UnitTests
         {
             var parser = BuildParser();
 
-            Assert.ThrowsAny<Exception>(() => parser.Parse(null));
+            Assert.False(parser.TryParse(null, out var section));
         }
 
         [Fact]
@@ -57,7 +57,7 @@ namespace DatadogTakeHome.Tests.UnitTests
         {
             var parser = BuildParser();
 
-            Assert.ThrowsAny<Exception>(() => parser.Parse(""));
+            Assert.False(parser.TryParse("", out var section));
         }
 
         [Fact]
@@ -65,7 +65,7 @@ namespace DatadogTakeHome.Tests.UnitTests
         {
             var parser = BuildParser();
 
-            Assert.ThrowsAny<Exception>(() => parser.Parse(" "));
+            Assert.False(parser.TryParse(" ", out var section));
         }
 
         [Fact]
@@ -73,7 +73,7 @@ namespace DatadogTakeHome.Tests.UnitTests
         {
             var parser = BuildParser();
 
-            Assert.ThrowsAny<Exception>(() => parser.Parse("GET /api/help/no/http/info"));
+            Assert.False(parser.TryParse("GET /api/help/no/http/info", out var section));
         }
 
         [Fact]
@@ -81,7 +81,7 @@ namespace DatadogTakeHome.Tests.UnitTests
         {
             var parser = BuildParser();
 
-            Assert.ThrowsAny<Exception>(() => parser.Parse("GET /api/help/no/http/info "));
+            Assert.False(parser.TryParse("GET /api/help/no/http/info ", out var section));
         }
 
         [Fact]
@@ -89,7 +89,7 @@ namespace DatadogTakeHome.Tests.UnitTests
         {
             var parser = BuildParser();
 
-            Assert.ThrowsAny<Exception>(() => parser.Parse("GET i_forgot_the_trailing_slash_here HTTP/1.0"));
+            Assert.False(parser.TryParse("GET i_forgot_the_trailing_slash_here HTTP/1.0", out var section));
         }
     }
 }

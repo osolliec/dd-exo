@@ -5,39 +5,49 @@ namespace DatadogTakeHome.Core.RequestParser
 {
     public class HttpRequestParser : IHttpRequestParser
     {
-        public ParsedRequest Parse(string s)
+        public bool TryParse(string s, out ParsedRequest parsedRequest)
         {
+            parsedRequest = null;
+
             if (string.IsNullOrWhiteSpace(s))
             {
-                throw new ArgumentNullException("string is null or empty");
+                return false;
             }
 
             var splits = s.Split(" ", StringSplitOptions.RemoveEmptyEntries);
 
             if (splits.Length != 3)
             {
-                throw new InvalidOperationException($"The request {s} cannot be parsed");
+                return false;
             }
 
-            return new ParsedRequest()
+            if (!TryParseSection(splits[1], out string section))
+            {
+                return false;
+            }
+
+            parsedRequest = new ParsedRequest()
             {
                 HttpVerb = splits[0],
                 Path = splits[1],
-                Section = ParseSection(splits[1]),
+                Section = section,
                 HttpVersion = splits[2],
             };
+
+            return true;
         }
 
-        private string ParseSection(string s)
+        private bool TryParseSection(string s, out string section)
         {
+            section = null;
             if (string.IsNullOrWhiteSpace(s))
             {
-                throw new ArgumentNullException("string is null or empty");
+                return false;
             }
 
             if (!s.StartsWith("/"))
             {
-                throw new ArgumentException($"String {s} does not seem to be a parsable path");
+                return false;
             }
 
             int indexOfSecondSlash = s.IndexOf("/", 1);
@@ -45,10 +55,12 @@ namespace DatadogTakeHome.Core.RequestParser
             if (indexOfSecondSlash == -1)
             {
                 // the whole string is the section
-                return s;
+                section = s;
+                return true;
             }
 
-            return s.Substring(0, indexOfSecondSlash);
+            section = s.Substring(0, indexOfSecondSlash);
+            return true;
         }
     }
 }
