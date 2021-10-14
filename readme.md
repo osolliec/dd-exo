@@ -22,6 +22,10 @@ Prerequisite: [.NET sdk 5.0](https://dotnet.microsoft.com/download/dotnet/5.0)
 
 ![Usage](Usage.png)
 
+## See it running
+
+![Here](see_it_running.gif)
+
 # Design Considerations
 
 ## Libraries
