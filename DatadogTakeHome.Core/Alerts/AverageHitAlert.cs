@@ -1,6 +1,5 @@
 ﻿using DatadogTakeHome.Core.Datastructures;
 using DatadogTakeHome.Core.Model;
-using System;
 using System.Text;
 
 namespace DatadogTakeHome.Core.Alerts
@@ -167,7 +166,7 @@ namespace DatadogTakeHome.Core.Alerts
 
         private void BuildMessage(bool firing, long maxTimestamp)
         {
-            var triggeredAt = DateTimeOffset.FromUnixTimeSeconds(maxTimestamp).ToString();
+            var triggeredAt = DateFormatter.FormatDate(maxTimestamp);
 
             if (firing)
             {

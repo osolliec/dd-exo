@@ -43,7 +43,7 @@ namespace DatadogTakeHome.Tests.UnitTests
             // the average for this size 2 alert is 5 (10 events / 2).
             Assert.Equal(AverageHitAlert.AlertStatus.FIRING, alert.Status);
             Assert.True(alert.HasMessage());
-            Assert.Equal("FIRING: High traffic generated an alert - total hits = 10 - on average = 5, triggered at 1970-01-01 00:00:03 +00:00.", alert.GetMessage());
+            Assert.Equal("FIRING: High traffic generated an alert - total hits = 10 - on average = 5, triggered at 1970-01-01 00:00:03Z.", alert.GetMessage());
         }
 
         [Fact]
@@ -107,7 +107,7 @@ namespace DatadogTakeHome.Tests.UnitTests
 
             Assert.Equal(AverageHitAlert.AlertStatus.NOT_FIRING, alert.Status);
             Assert.True(alert.HasMessage());
-            Assert.Equal("RESOLVED: High traffic alert was resolved at 1970-01-01 00:00:10 +00:00 - total hits = 0 - on average = 0", alert.GetMessage());
+            Assert.Equal("RESOLVED: High traffic alert was resolved at 1970-01-01 00:00:10Z - total hits = 0 - on average = 0", alert.GetMessage());
         }
 
         [Fact]
@@ -130,7 +130,7 @@ namespace DatadogTakeHome.Tests.UnitTests
 
             Assert.Equal(AverageHitAlert.AlertStatus.FIRING, alert.Status);
             Assert.True(alert.HasMessage());
-            Assert.Equal("FIRING: High traffic generated an alert - total hits = 4 - on average = 2, triggered at 1970-01-01 00:00:04 +00:00.", alert.GetMessage());
+            Assert.Equal("FIRING: High traffic generated an alert - total hits = 4 - on average = 2, triggered at 1970-01-01 00:00:04Z.", alert.GetMessage());
         }
 
         [Fact]

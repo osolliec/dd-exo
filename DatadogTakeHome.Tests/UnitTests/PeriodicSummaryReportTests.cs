@@ -114,7 +114,7 @@ namespace DatadogTakeHome.Tests.UnitTests
             var message = report.GetMessage();
 
             // the window is bigger than requested size, but it's by design.
-            Assert.Contains("REPORT - FROM 1970-01-01 00:00:01 +00:00 TO 1970-01-01 00:00:12 +00:00 EXCLUSIVE", message);
+            Assert.Contains("REPORT - FROM 1970-01-01 00:00:01Z TO 1970-01-01 00:00:12Z EXCLUSIVE", message);
             Assert.Contains("TOTAL HITS: 1", message);
         }
 
@@ -194,7 +194,7 @@ namespace DatadogTakeHome.Tests.UnitTests
             report.AdvanceTime(3);
 
             Assert.True(StringEqualWithoutSpace(
-                @"REPORT - FROM 1970-01-01 00:00:01 +00:00 TO 1970-01-01 00:00:03 +00:00 EXCLUSIVE
+                @"REPORT - FROM 1970-01-01 00:00:01Z TO 1970-01-01 00:00:03Z EXCLUSIVE
                 TOTAL HITS: 210 
                 TOP 5 SECTIONS HITS: 
                 SECTION: /api-20 HITS: 20 
@@ -225,10 +225,9 @@ namespace DatadogTakeHome.Tests.UnitTests
             report.Collect(BuildLogLine(1, 503), parsedRequest);
 
             report.AdvanceTime(3);
-
             Assert.True(
                 StringEqualWithoutSpace(
-                    @"REPORT - FROM 1970-01-01 00:00:01 +00:00 TO 1970-01-01 00:00:03 +00:00 EXCLUSIVE
+                    @"REPORT - FROM 1970-01-01 00:00:01Z TO 1970-01-01 00:00:03Z EXCLUSIVE
                     TOTAL HITS: 2 
                     TOP 5 SECTIONS HITS: 
                     SECTION: /api HITS: 2 

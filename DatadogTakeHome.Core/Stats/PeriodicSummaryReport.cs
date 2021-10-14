@@ -1,6 +1,5 @@
 ﻿using DatadogTakeHome.Core.Datastructures;
 using DatadogTakeHome.Core.Model;
-using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -115,8 +114,8 @@ namespace DatadogTakeHome.Core.Stats
         /// <param name="windowEndTime"></param>
         private void BuildReport(long windowStartTime, long windowEndTime)
         {
-            var previousInclusive = DateTimeOffset.FromUnixTimeSeconds(windowStartTime).ToString();
-            var currentExclusive = DateTimeOffset.FromUnixTimeSeconds(windowEndTime).ToString();
+            var previousInclusive = DateFormatter.FormatDate(windowStartTime);
+            var currentExclusive = DateFormatter.FormatDate(windowEndTime);
 
             _message.Append($"REPORT - FROM {previousInclusive} TO {currentExclusive} EXCLUSIVE\n");
             _message.Append($"TOTAL HITS: {_logContainer.GetTotalHits()} \n");
