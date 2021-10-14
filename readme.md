@@ -7,6 +7,12 @@ This project is my (Olivier Solliec) take home assignment for my datadog applica
 
 ## Not using docker
 
+### Usage
+
+    ./DatadogTakeHome.exe -h
+
+![Usage](Usage.png)
+
 # Design Considerations
 
 ## Libraries
@@ -74,7 +80,6 @@ When inserting data, we take the timestamp % 120, and this is our index to inser
 
 ## If I had more time to improve the assignment
 
-- I would rework the parameters of the program, using named parameters instead of position parameters.
 - I would rewrite this in a Web application, add a front end on top of it.
 - I would investigate the [Actor Model](https://en.wikipedia.org/wiki/Actor_model) which could suit us fine for this use case. For example, each alert and report would be an actor, the parser would also be an actor and send messages to alerts & reports. Then there would be a display actor that receives "print" messages and prints them.
 - Improve the statistics: add a request rate per second for each relevant counter.

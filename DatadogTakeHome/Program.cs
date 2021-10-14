@@ -6,44 +6,102 @@ using DatadogTakeHome.Core.RequestParser;
 using DatadogTakeHome.Core.Stats;
 using System;
 using System.Collections.Generic;
+using System.CommandLine;
+using System.CommandLine.Invocation;
 
 namespace DatadogTakeHome
 {
     class Program
     {
-        private static int TWO_MINUTES_DURATION_SECONDS = 120;
         static void Main(string[] args)
         {
-            var logger = new ConsoleLogger();
-            var orchestrator = new Orchestrator(
-                new HttpRequestParser(),
-                logger,
-                new List<ILogAggregator> {
-                    new PeriodicSummaryReport(10),
-                    new AverageHitAlert(TWO_MINUTES_DURATION_SECONDS, 10),
-                }
-            );
+            var mainCommand = BuildCommand();
 
-
-
-            try
+            mainCommand.Handler = CommandHandler.Create<int, int, int, string>((alertWindowSeconds, alertAverageThreshold, reportWindowSeconds, file) =>
             {
-                //Stream inputStream = Console.OpenStandardInput();
-                using (var parser = new StreamingCsvParser(logger))
-                {
-                    var lines = parser.Parse("sample_csv.txt");
+                var logger = new ConsoleLogger();
+                var orchestrator = new Orchestrator(
+                    new HttpRequestParser(),
+                    logger,
+                    new List<ILogAggregator> {
+                    new PeriodicSummaryReport(reportWindowSeconds),
+                    new AverageHitAlert(alertWindowSeconds, alertAverageThreshold),
+                    }
+                );
 
-                    foreach (var line in lines)
+                try
+                {
+                    if (string.IsNullOrWhiteSpace(file))
                     {
-                        orchestrator.Collect(line);
-                        orchestrator.DisplayMessages();
+                        ReadFromStdin(logger, orchestrator);
+                    }
+                    else
+                    {
+                        ReadFromFile(file, logger, orchestrator);
                     }
                 }
-            }
-            catch (Exception ex)
+                catch (Exception ex)
+                {
+                    logger.Log(LogLevel.Error, ex, "Error in main program");
+                }
+
+            }); ;
+
+            mainCommand.Invoke(args);
+        }
+
+        static void ReadFromStdin(ConsoleLogger logger, Orchestrator orchestrator)
+        {
+            Console.WriteLine("Starting to read from STDIN. If you still see this, the program needs input.");
+            using (var inputStream = Console.OpenStandardInput())
+            using (var parser = new StreamingCsvParser(logger))
             {
-                logger.Log(LogLevel.Error, ex, "Error in main program");
+                var lines = parser.Parse(inputStream);
+
+                foreach (var line in lines)
+                {
+                    orchestrator.Collect(line);
+                    orchestrator.DisplayMessages();
+                }
             }
+        }
+
+        static void ReadFromFile(string path, ILogger logger, Orchestrator orchestrator)
+        {
+            using (var parser = new StreamingCsvParser(logger))
+            {
+                var lines = parser.Parse(path);
+
+                foreach (var line in lines)
+                {
+                    orchestrator.Collect(line);
+                    orchestrator.DisplayMessages();
+                }
+            }
+        }
+
+        static RootCommand BuildCommand()
+        {
+            return new RootCommand("Reads from either http log csv file or STDIN, and inputs statistics and alerts. If no file was specified, will read from STDIN. Both options are blocking.")
+            {
+                new Option<int>(
+                    new string[] { "--alert-window-seconds" },
+                    getDefaultValue: () => 120,
+                    description: "The window size of the alert in seconds."),
+                new Option<int>(
+                    new string[] { "--alert-average-threshold" },
+                    getDefaultValue: () => 10,
+                    description: "The average hit threshold of the alert."),
+                new Option<int>(
+                    new string[] { "--report-window-seconds" },
+                    getDefaultValue: () => 10,
+                    description: "The window size of the report in seconds."),
+                new Option<string>(
+                    "--file",
+                    getDefaultValue: () => string.Empty,
+                    description: "The path to the file to be parsed. If no file, will default to STDIN."
+                )
+            };
         }
     }
 }
