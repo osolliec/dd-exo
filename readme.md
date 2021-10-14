@@ -92,3 +92,4 @@ When inserting data, we take the timestamp % 120, and this is our index to inser
 - If I had more alerts / reports, and the granularity is alwyas to the second, I would try to pre compute aggregated data to the second. For example, we could have a system where when you see the Nth timestamp, you can send downstream the aggregated data for the Nth - 10 timestamp. This way, the alerts wouldn't be responsible for aggregating each "log line".
 - Have a different interface for alerts than reports.
 - YAGNI for this assignment: I would find a way to put common code for alerts and reports in an abstract class; for example the alerts that should send a message only the first time they fire. For this assignment there's only one of each so it doesn't really make sense.
+- If it were a real product, have a look at alerting APIs (OpsGenie / PagerDuty) or even just slack to trigger the alerts there.
