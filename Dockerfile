@@ -10,10 +10,7 @@ COPY ["DatadogTakeHome.Tests/DatadogTakeHome.Tests.csproj", "DatadogTakeHome.Tes
 
 RUN dotnet restore
 
-# build
 COPY . .
-
-RUN dotnet build
 
 FROM build as test
 WORKDIR /app
@@ -21,3 +18,7 @@ WORKDIR /app
 # launch the tests
 RUN dotnet test --logger:trx
 
+FROM build as publish
+WORKDIR /app
+
+RUN dotnet publish --output out

@@ -5,11 +5,22 @@ This project is my (Olivier Solliec) take home assignment for my datadog applica
 
 ## Using docker
 
+    docker build -t takehome .
+    docker run --name takehome -td takehome
+    cat sample_csv.txt | docker exec -i takehome /app/out/DatadogTakeHome
+
 ## Not using docker
 
-### Usage
+### Prerequisites
 
-    ./DatadogTakeHome.exe -h
+- [.NET sdk 5.0](https://dotnet.microsoft.com/download/dotnet/5.0)
+
+    dotnet publish --output out
+    cat sample_csv.txt | /out/DatadogTakeHome
+
+## Usage
+
+    ./DatadogTakeHome -h
 
 ![Usage](Usage.png)
 
@@ -17,12 +28,9 @@ This project is my (Olivier Solliec) take home assignment for my datadog applica
 
 ## Libraries
 
-I use [CsvHelper](https://joshclose.github.io/CsvHelper/) for parsing the CSV file. My reasoning is the following:
-- Don't reinvent the wheel
-- I don't want to spend too much time with CSV edge cases (line breaks inside quotes, escaped quote inside quotes ...)
-- I will focus on the actual added value of this take home, the monitoring/alerting system.
-
-I use [XUnit](https://xunit.net/) for unit/integration tests.
+- [CsvHelper](https://joshclose.github.io/CsvHelper/) for parsing the CSV file.
+- [CommandLineApi](https://github.com/dotnet/command-line-api) for parsing the arguments
+- [XUnit](https://xunit.net/) for unit/integration tests.
 
 ## Assumptions
 
