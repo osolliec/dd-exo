@@ -1,6 +1,8 @@
 # Datadog Take Home
 This project is my (Olivier Solliec) take home assignment for my datadog application. I wrote it in C# and included a dockerfile for easy running. Here are the guidelines for reference: [guidelines](https://docs.google.com/document/d/1NtnYypfuhRIllsh99Aq1inbLBytVIDvhmiWbKwGy7ug/edit#).
 
+It took me ~10 hours to complete the assignment.
+
 # How to run
 
 ## Using docker
