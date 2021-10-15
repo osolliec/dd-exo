@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.IO;
 
 namespace DatadogTakeHome
 {
@@ -20,6 +21,13 @@ namespace DatadogTakeHome
             mainCommand.Handler = CommandHandler.Create<int, int, int, string>((alertWindowSeconds, alertAverageThreshold, reportWindowSeconds, file) =>
             {
                 var logger = new ConsoleLogger();
+
+                if (alertWindowSeconds < 1 || alertAverageThreshold < 1 || reportWindowSeconds < 1)
+                {
+                    logger.Log(LogLevel.Error, null, "Value must be at least 1");
+                    System.Environment.Exit(-1);
+                }
+
                 var orchestrator = new Orchestrator(
                     new HttpRequestParser(),
                     logger,
@@ -68,6 +76,12 @@ namespace DatadogTakeHome
 
         static void ReadFromFile(string path, ILogger logger, Orchestrator orchestrator)
         {
+            if (!File.Exists(path))
+            {
+                logger.Log(LogLevel.Information, null, $"File not found {path}, aborting");
+                System.Environment.Exit(-1);
+            }
+
             using (var parser = new StreamingCsvParser(logger))
             {
                 var lines = parser.Parse(path);
