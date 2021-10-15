@@ -26,16 +26,16 @@ namespace DatadogTakeHome.Core.Csv
         ///
         /// See https://stackoverflow.com/a/24993767
         /// </summary>
-        /// <param name="path"></param>
-        public IEnumerable<LogLine> ContinuouslyReadFile(string path, CsvConfiguration config)
+        /// <param name="fullPath"></param>
+        public IEnumerable<LogLine> ContinuouslyReadFile(string fullPath, CsvConfiguration config)
         {
-            var directory = Path.GetDirectoryName(path);
+            var directory = Path.GetDirectoryName(fullPath);
             if (string.IsNullOrWhiteSpace(directory))
             {
                 directory = ".";
             }
 
-            var fileName = Path.GetFileName(path);
+            var fileName = Path.GetFileName(fullPath);
 
             _logger.Log(LogLevel.Information, null, $"Going to watch file {fileName} in directory {directory}");
 
@@ -53,7 +53,7 @@ namespace DatadogTakeHome.Core.Csv
 
             try
             {
-                using (var fs = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                using (var fs = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 using (var sr = new StreamReader(fs))
                 {
                     while (true)
