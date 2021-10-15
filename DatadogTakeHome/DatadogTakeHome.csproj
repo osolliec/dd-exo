@@ -17,10 +17,4 @@
     <ProjectReference Include="..\DatadogTakeHome.Core\DatadogTakeHome.Core.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Update="sample_csv.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
 </Project>
