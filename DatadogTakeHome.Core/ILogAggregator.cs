@@ -1,4 +1,5 @@
 ﻿using DatadogTakeHome.Core.Model;
+using System.Collections.Generic;
 
 namespace DatadogTakeHome.Core
 {
@@ -14,16 +15,10 @@ namespace DatadogTakeHome.Core
         /// <param name="parsedRequest">The parsed request which contains Section information</param>
         public void Collect(LogLine logLine, ParsedRequest parsedRequest);
         /// <summary>
-        /// Get the aggregator's message.
-        /// Once called, it should also clear the message from the aggregator.
+        /// Register a message queue to publish messages when the ILogAggregator needs to publish messages.
         /// </summary>
-        /// <returns></returns>
-        public string GetMessage();
-        /// <summary>
-        /// Indicates that the current report has a message ready for display.
-        /// </summary>
-        /// <returns></returns>
-        public bool HasMessage();
+        /// <param name="messageQueue"></param>
+        public void RegisterMessageQueue(Queue<string> messageQueue);
         /// <summary>
         /// Signals that we've received a bigger timestamp than previously.
         /// </summary>

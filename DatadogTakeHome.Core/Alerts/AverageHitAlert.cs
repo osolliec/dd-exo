@@ -1,5 +1,7 @@
 ﻿using DatadogTakeHome.Core.Datastructures;
 using DatadogTakeHome.Core.Model;
+using System;
+using System.Collections.Generic;
 using System.Text;
 
 namespace DatadogTakeHome.Core.Alerts
@@ -24,9 +26,9 @@ namespace DatadogTakeHome.Core.Alerts
         private CircularBuffer _buffer;
 
         /// <summary>
-        /// Holds our alert's potential message.
+        /// An external message queue to publish messages.
         /// </summary>
-        private StringBuilder _message;
+        private Queue<string> _messageQueue;
 
         public enum AlertStatus
         {
@@ -57,7 +59,6 @@ namespace DatadogTakeHome.Core.Alerts
             _status = AlertStatus.NOT_FIRING;
 
             _buffer = new CircularBuffer(windowDurationSeconds);
-            _message = new StringBuilder();
         }
 
         /// <summary>
@@ -85,6 +86,11 @@ namespace DatadogTakeHome.Core.Alerts
             PossiblyChangeAlertState(maxTimestamp);
             CloseOldBuckets(maxTimestamp);
             UpdateTimestamps(maxTimestamp);
+        }
+
+        public void RegisterMessageQueue(Queue<string> messageQueue)
+        {
+            _messageQueue = messageQueue;
         }
 
         /// <summary>
@@ -148,33 +154,22 @@ namespace DatadogTakeHome.Core.Alerts
             _previousMaxTimestamp = maxTimestamp;
         }
 
-        /// <summary>
-        /// Return the current message and clear it from the alert's memory.
-        /// </summary>
-        /// <returns></returns>
-        public string GetMessage()
+        private void BuildMessage(bool firing, long triggerTime)
         {
-            var message = _message.ToString();
-            _message.Clear();
-            return message;
-        }
+            if (_messageQueue == null)
+            {
+                throw new InvalidOperationException("_messageQueue cannot be null. Please use the method RegisterMessageQueue");
+            }
 
-        public bool HasMessage()
-        {
-            return _message.Length > 0;
-        }
-
-        private void BuildMessage(bool firing, long maxTimestamp)
-        {
-            var triggeredAt = DateFormatter.FormatDate(maxTimestamp);
+            var triggeredAt = DateFormatter.FormatDate(triggerTime);
 
             if (firing)
             {
-                _message.Append($"FIRING: High traffic generated an alert - total hits = {_buffer.GetTotal()} - on average = {_buffer.GetAverage()}, triggered at {triggeredAt}.");
+                _messageQueue.Enqueue($"FIRING: High traffic generated an alert - total hits = {_buffer.GetTotal()} - on average = {_buffer.GetAverage()}, triggered at {triggeredAt}.");
             }
             else
             {
-                _message.Append($"RESOLVED: High traffic alert was resolved at {triggeredAt} - total hits = {_buffer.GetTotal()} - on average = {_buffer.GetAverage()}");
+                _messageQueue.Enqueue($"RESOLVED: High traffic alert was resolved at {triggeredAt} - total hits = {_buffer.GetTotal()} - on average = {_buffer.GetAverage()}");
             }
         }
     }

@@ -1,5 +1,6 @@
 ﻿using DatadogTakeHome.Core.Datastructures;
 using DatadogTakeHome.Core.Model;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -38,7 +39,7 @@ namespace DatadogTakeHome.Core.Stats
         /// <summary>
         /// Holds our report message.
         /// </summary>
-        private StringBuilder _message;
+        private Queue<string> _messageQueue;
 
         /// <summary>
         /// Build a PeriodicSummaryReport.
@@ -48,7 +49,6 @@ namespace DatadogTakeHome.Core.Stats
         {
             _windowDurationSeconds = windowDurationSeconds;
             _logContainer = new LogContainer();
-            _message = new StringBuilder();
         }
 
         /// <summary>
@@ -91,20 +91,9 @@ namespace DatadogTakeHome.Core.Stats
             }
         }
 
-        /// <summary>
-        /// Return the current message and clear it from the report's memory.
-        /// </summary>
-        /// <returns></returns>
-        public string GetMessage()
+        public void RegisterMessageQueue(Queue<string> messageQueue)
         {
-            var message = _message.ToString();
-            _message.Clear();
-            return message;
-        }
-
-        public bool HasMessage()
-        {
-            return _message.Length > 0;
+            _messageQueue = messageQueue;
         }
 
         /// <summary>
@@ -114,24 +103,33 @@ namespace DatadogTakeHome.Core.Stats
         /// <param name="windowEndTime"></param>
         private void BuildReport(long windowStartTime, long windowEndTime)
         {
+            if (_messageQueue == null)
+            {
+                throw new InvalidOperationException("_messageQueue cannot be null. Please use the method RegisterMessageQueue");
+            }
+
             var windowStart = DateFormatter.FormatDate(windowStartTime);
             var windowEnd = DateFormatter.FormatDate(windowEndTime);
 
-            _message.Append($"REPORT - FROM {windowStart} TO {windowEnd}\n");
-            _message.Append($"TOTAL HITS: {_logContainer.GetTotalHits()} \n");
-            _message.Append("TOP 5 SECTIONS HITS: \n");
+            var message = new StringBuilder();
+
+            message.Append($"REPORT - FROM {windowStart} TO {windowEnd}\n");
+            message.Append($"TOTAL HITS: {_logContainer.GetTotalHits()} \n");
+            message.Append("TOP 5 SECTIONS HITS: \n");
 
             var top5Sections = GetTopKSectionsWithCount(_logContainer.GetSectionHits(), MAX_NUMBER_OF_SECTIONS_TO_DISPLAY);
 
             foreach (var section in top5Sections)
             {
-                _message.Append($"SECTION: {section.Item2} HITS: {section.Item1} \n");
+                message.Append($"SECTION: {section.Item2} HITS: {section.Item1} \n");
             }
 
             foreach (var code in _logContainer.GetStatusCodes())
             {
-                _message.Append($"HTTP_CODE: {code.Key} HITS: {code.Value} \n");
+                message.Append($"HTTP_CODE: {code.Key} HITS: {code.Value} \n");
             }
+
+            _messageQueue.Enqueue(message.ToString());
         }
 
         /// <summary>

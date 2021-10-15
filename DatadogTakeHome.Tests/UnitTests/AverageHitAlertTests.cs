@@ -1,16 +1,16 @@
 ﻿using DatadogTakeHome.Core.Alerts;
 using DatadogTakeHome.Core.Model;
+using System.Collections.Generic;
 using Xunit;
 
 namespace DatadogTakeHome.Tests.UnitTests
 {
     public class AverageHitAlertTests
     {
-
         [Fact]
         public void WhenThereIsNotEnoughDataButThresholdIsSurpassed_TheAlert_ShouldNotFire()
         {
-            var alert = new AverageHitAlert(2, 2);
+            var alert = BuildEmptyAlert(out var messageQueue);
 
             alert.AdvanceTime(1);
 
@@ -22,13 +22,13 @@ namespace DatadogTakeHome.Tests.UnitTests
             alert.AdvanceTime(2);
 
             // the average for this size 2 alert is 5, which is above the trigger. We still don't fire the alert because not enough time has passed.
-            Assert.False(alert.HasMessage());
+            Assert.Empty(messageQueue);
         }
 
         [Fact]
         public void WhenEnoughDataHasBeenGatheredAndThresholdIsSurpassed_TheAlert_ShouldFire()
         {
-            var alert = new AverageHitAlert(2, 2);
+            var alert = BuildEmptyAlert(out var messageQueue);
 
             alert.AdvanceTime(1);
 
@@ -42,14 +42,14 @@ namespace DatadogTakeHome.Tests.UnitTests
 
             // the average for this size 2 alert is 5 (10 events / 2).
             Assert.Equal(AverageHitAlert.AlertStatus.FIRING, alert.Status);
-            Assert.True(alert.HasMessage());
-            Assert.Equal("FIRING: High traffic generated an alert - total hits = 10 - on average = 5, triggered at 1970-01-01 00:00:03Z.", alert.GetMessage());
+            Assert.Single(messageQueue);
+            Assert.Equal("FIRING: High traffic generated an alert - total hits = 10 - on average = 5, triggered at 1970-01-01 00:00:03Z.", messageQueue.Dequeue());
         }
 
         [Fact]
         public void WhenEnoughDataHasBeenGatheredButThresholdIsNOTSurpassed_TheAlert_ShouldNOTFire()
         {
-            var alert = new AverageHitAlert(2, 2);
+            var alert = BuildEmptyAlert(out var messageQueue);
 
             alert.AdvanceTime(1);
 
@@ -59,27 +59,14 @@ namespace DatadogTakeHome.Tests.UnitTests
             alert.AdvanceTime(3);
 
             Assert.Equal(AverageHitAlert.AlertStatus.NOT_FIRING, alert.Status);
-            Assert.False(alert.HasMessage());
+            Assert.Empty(messageQueue);
         }
 
         [Fact]
-        public void WhenAccessingTheMessage_TheAlert_ShouldRemoveItsMessage()
-        {
-            var alert = BuildFiringAlert();
-
-            Assert.True(alert.HasMessage());
-            Assert.True(alert.GetMessage().Length > 0);
-            Assert.False(alert.HasMessage());
-        }
-
-        [Fact]
-        public void WhenNotResolved_TheAlert_ShouldNotFireTwice()
+        public void WhenNotResolved_TheAlert_ShouldNotFireASecondMessage()
         {
             // the alert is already firing
-            var alert = BuildFiringAlert();
-
-            // empty the message
-            alert.GetMessage();
+            var alert = BuildFiringAlert(out var messageQueue);
 
             for (int i = 0; i < 10; i++)
             {
@@ -89,31 +76,31 @@ namespace DatadogTakeHome.Tests.UnitTests
 
             alert.AdvanceTime(3);
 
-            // the alert's message has already been consumed, and won't be served a second time - even though it's still firing.
             Assert.Equal(AverageHitAlert.AlertStatus.FIRING, alert.Status);
-            Assert.False(alert.HasMessage());
+            // the alert's message won't be sent a second time - even though the alert is still firing.
+            Assert.Single(messageQueue);
         }
 
         [Fact]
         public void WhenResolved_TheAlert_ShouldSendAMessage()
         {
-            var alert = BuildFiringAlert();
+            var alert = BuildFiringAlert(out var messageQueue);
 
-            // empty the message
-            alert.GetMessage();
+            // empty the firing message
+            messageQueue.Dequeue();
 
             // pass the time without collecting any new data to resolve the alert
             alert.AdvanceTime(10);
 
             Assert.Equal(AverageHitAlert.AlertStatus.NOT_FIRING, alert.Status);
-            Assert.True(alert.HasMessage());
-            Assert.Equal("RESOLVED: High traffic alert was resolved at 1970-01-01 00:00:10Z - total hits = 0 - on average = 0", alert.GetMessage());
+            Assert.Single(messageQueue);
+            Assert.Equal("RESOLVED: High traffic alert was resolved at 1970-01-01 00:00:10Z - total hits = 0 - on average = 0", messageQueue.Dequeue());
         }
 
         [Fact]
         public void WhenLateEventsDontExceedWindowSize_TheAlert_WillAcceptThoseLateEvents()
         {
-            var alert = new AverageHitAlert(2, 2);
+            var alert = BuildEmptyAlert(out var messageQueue);
 
             alert.AdvanceTime(1);
             alert.AdvanceTime(3);
@@ -129,14 +116,14 @@ namespace DatadogTakeHome.Tests.UnitTests
             alert.AdvanceTime(4);
 
             Assert.Equal(AverageHitAlert.AlertStatus.FIRING, alert.Status);
-            Assert.True(alert.HasMessage());
-            Assert.Equal("FIRING: High traffic generated an alert - total hits = 4 - on average = 2, triggered at 1970-01-01 00:00:04Z.", alert.GetMessage());
+            Assert.Single(messageQueue);
+            Assert.Equal("FIRING: High traffic generated an alert - total hits = 4 - on average = 2, triggered at 1970-01-01 00:00:04Z.", messageQueue.Dequeue());
         }
 
         [Fact]
         public void WhenReceivingLateEventsThatExceedWindowSize_TheAlert_ShouldNotAcceptThoseLateEvents()
         {
-            var alert = new AverageHitAlert(2, 2);
+            var alert = BuildEmptyAlert(out var messageQueue);
 
             alert.AdvanceTime(1);
             alert.AdvanceTime(3);
@@ -151,7 +138,7 @@ namespace DatadogTakeHome.Tests.UnitTests
             alert.AdvanceTime(4);
 
             Assert.Equal(AverageHitAlert.AlertStatus.NOT_FIRING, alert.Status);
-            Assert.False(alert.HasMessage());
+            Assert.Empty(messageQueue);
         }
 
 
@@ -159,9 +146,13 @@ namespace DatadogTakeHome.Tests.UnitTests
         /// Build an alert that is firing and has a message to collect.
         /// </summary>
         /// <returns></returns>
-        private AverageHitAlert BuildFiringAlert()
+        private AverageHitAlert BuildFiringAlert(out Queue<string> messageQueue)
         {
+            messageQueue = new Queue<string>();
+
             var alert = new AverageHitAlert(2, 2);
+
+            alert.RegisterMessageQueue(messageQueue);
 
             alert.AdvanceTime(1);
 
@@ -174,6 +165,22 @@ namespace DatadogTakeHome.Tests.UnitTests
 
             return alert;
         }
+
+        /// <summary>
+        /// Build an alert that is firing and has a message to collect.
+        /// </summary>
+        /// <returns></returns>
+        private AverageHitAlert BuildEmptyAlert(out Queue<string> messageQueue)
+        {
+            messageQueue = new Queue<string>();
+
+            var alert = new AverageHitAlert(2, 2);
+
+            alert.RegisterMessageQueue(messageQueue);
+
+            return alert;
+        }
+
         private LogLine BuildLogLine(long timestamp = 0, int httpCode = 200)
         {
             return new LogLine()

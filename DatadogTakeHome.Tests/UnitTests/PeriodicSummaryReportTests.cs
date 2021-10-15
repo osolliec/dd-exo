@@ -1,6 +1,7 @@
 ﻿using DatadogTakeHome.Core.Model;
 using DatadogTakeHome.Core.Stats;
 using System;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Xunit;
 
@@ -12,7 +13,7 @@ namespace DatadogTakeHome.Tests.UnitTests
         [Fact]
         public void WhenWindowHasClosed_TheReport_ShouldHoldAMessage()
         {
-            var report = new PeriodicSummaryReport(2);
+            var report = BuildReport(out var messageQueue);
             var logLine = BuildLogLine(1);
             var parsedRequest = BuildParsedRequest();
 
@@ -23,32 +24,13 @@ namespace DatadogTakeHome.Tests.UnitTests
 
             report.AdvanceTime(3);
 
-            Assert.True(report.HasMessage());
-        }
-
-        [Fact]
-        public void WhenMessageHasBeenRead_TheReport_ShouldNotHoldTheMessage()
-        {
-            var report = new PeriodicSummaryReport(2);
-            var logLine = BuildLogLine(1);
-            var parsedRequest = BuildParsedRequest();
-
-            report.AdvanceTime(1);
-
-            report.Collect(logLine, parsedRequest);
-            report.Collect(logLine, parsedRequest);
-
-            report.AdvanceTime(3);
-
-            Assert.True(report.HasMessage());
-            Assert.True(report.GetMessage().Length > 0);
-            Assert.False(report.HasMessage());
+            Assert.Single(messageQueue);
         }
 
         [Fact]
         public void WhenReceivingLateEventsThatExceedWindowTime_TheReport_ShouldIgnoreThoseLateEvents()
         {
-            var report = new PeriodicSummaryReport(2);
+            var report = BuildReport(out var messageQueue);
             var parsedRequest = BuildParsedRequest();
 
             report.AdvanceTime(1);
@@ -62,15 +44,13 @@ namespace DatadogTakeHome.Tests.UnitTests
             // lateEvent, arrived after the bucket has closed.
             report.Collect(BuildLogLine(1), parsedRequest);
 
-            var message = report.GetMessage();
-
-            Assert.Contains("TOTAL HITS: 2", message);
+            Assert.Contains("TOTAL HITS: 2", messageQueue.Dequeue());
         }
 
         [Fact]
         public void WhenReceivingEventsLaterThanCurrentTimestamp_TheReport_ShouldAcceptThoseEvents()
         {
-            var report = new PeriodicSummaryReport(2);
+            var report = BuildReport(out var messageQueue);
             var parsedRequest = BuildParsedRequest();
 
             report.AdvanceTime(1);
@@ -84,9 +64,7 @@ namespace DatadogTakeHome.Tests.UnitTests
 
             report.AdvanceTime(3);
 
-            var message = report.GetMessage();
-
-            Assert.Contains("TOTAL HITS: 2", message);
+            Assert.Contains("TOTAL HITS: 2", messageQueue.Dequeue());
         }
 
         /// <summary>
@@ -95,7 +73,7 @@ namespace DatadogTakeHome.Tests.UnitTests
         [Fact]
         public void WhenMessagesDontHaveConsecutiveTimestamps_TheReport_ShouldStillFireAWindowEvenThoughItsBiggerThanRequested()
         {
-            var report = new PeriodicSummaryReport(2);
+            var report = BuildReport(out var messageQueue);
             var parsedRequest = BuildParsedRequest();
 
             report.AdvanceTime(1);
@@ -109,7 +87,7 @@ namespace DatadogTakeHome.Tests.UnitTests
             // this event won't be collected in the current message
             report.Collect(BuildLogLine(12), parsedRequest);
 
-            var message = report.GetMessage();
+            var message = messageQueue.Dequeue();
 
             // the window is bigger than requested size, but it's by design.
             Assert.Contains("REPORT - FROM 1970-01-01 00:00:01Z TO 1970-01-01 00:00:11Z", message);
@@ -119,7 +97,7 @@ namespace DatadogTakeHome.Tests.UnitTests
         [Fact]
         public void WhenThereAreNoHitsOnCommonStatusCodes_TheReport_ShouldStillDisplayThem()
         {
-            var report = new PeriodicSummaryReport(1);
+            var report = BuildReport(out var messageQueue, 1);
             var parsedRequest = BuildParsedRequest();
 
             report.AdvanceTime(1);
@@ -129,7 +107,7 @@ namespace DatadogTakeHome.Tests.UnitTests
 
             report.AdvanceTime(2);
 
-            var message = report.GetMessage();
+            var message = messageQueue.Dequeue();
 
             Assert.Contains("HTTP_CODE: 200 HITS: 0", message);
             Assert.Contains("HTTP_CODE: 300 HITS: 0", message);
@@ -140,7 +118,7 @@ namespace DatadogTakeHome.Tests.UnitTests
         [Fact]
         public void WhenThereAreHitsOnUncommonStatusCodes_TheReport_ShouldDisplayThem()
         {
-            var report = new PeriodicSummaryReport(2);
+            var report = BuildReport(out var messageQueue);
 
             report.AdvanceTime(1);
 
@@ -149,7 +127,7 @@ namespace DatadogTakeHome.Tests.UnitTests
 
             report.AdvanceTime(3);
 
-            var message = report.GetMessage();
+            var message = messageQueue.Dequeue();
 
             Assert.Contains("HTTP_CODE: 111 HITS: 1", message);
             Assert.Contains("HTTP_CODE: 112 HITS: 1", message);
@@ -158,7 +136,7 @@ namespace DatadogTakeHome.Tests.UnitTests
         [Fact]
         public void WhenThereAreHitsOnSections_TheReport_ShouldDisplayTheSectionHits()
         {
-            var report = new PeriodicSummaryReport(2);
+            var report = BuildReport(out var messageQueue);
 
             report.AdvanceTime(1);
 
@@ -167,7 +145,7 @@ namespace DatadogTakeHome.Tests.UnitTests
 
             report.AdvanceTime(3);
 
-            var message = report.GetMessage();
+            var message = messageQueue.Dequeue();
 
             Assert.Contains("SECTION: /api HITS: 1", message);
             Assert.Contains("SECTION: /user HITS: 1", message);
@@ -176,7 +154,7 @@ namespace DatadogTakeHome.Tests.UnitTests
         [Fact]
         public void WhenThereAreMoreThan5Sections_TheReport_ShouldKeepTheTop5SectionHits()
         {
-            var report = new PeriodicSummaryReport(2);
+            var report = BuildReport(out var messageQueue);
 
             report.AdvanceTime(1);
 
@@ -204,7 +182,7 @@ namespace DatadogTakeHome.Tests.UnitTests
                 HTTP_CODE: 300 HITS: 0 
                 HTTP_CODE: 400 HITS: 0 
                 HTTP_CODE: 500 HITS: 0",
-                report.GetMessage()
+                messageQueue.Dequeue()
                 ));
         }
 
@@ -214,7 +192,7 @@ namespace DatadogTakeHome.Tests.UnitTests
         [Fact]
         public void WhenWindowHasClosed_TheReport_ShouldDisplayAllHits()
         {
-            var report = new PeriodicSummaryReport(2);
+            var report = BuildReport(out var messageQueue);
             var parsedRequest = BuildParsedRequest();
 
             report.AdvanceTime(1);
@@ -235,9 +213,17 @@ namespace DatadogTakeHome.Tests.UnitTests
                     HTTP_CODE: 404 HITS: 1 
                     HTTP_CODE: 500 HITS: 0 
                     HTTP_CODE: 503 HITS: 1",
-                    report.GetMessage()
+                    messageQueue.Dequeue()
                     )
                 );
+        }
+
+        private PeriodicSummaryReport BuildReport(out Queue<string> messageQueue, int windowSize = 2)
+        {
+            var report = new PeriodicSummaryReport(windowSize);
+            messageQueue = new Queue<string>();
+            report.RegisterMessageQueue(messageQueue);
+            return report;
         }
 
         private LogLine BuildLogLine(long timestamp = 0, int httpCode = 200)

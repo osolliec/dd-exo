@@ -33,8 +33,12 @@ namespace DatadogTakeHome.Core
             _httpRequestParser = requestParser;
             _logAggregators = logAggregators;
             _logger = logger;
-            _messages = new Queue<string>();
             _maxTimestampSeenSoFar = -1;
+            _messages = new Queue<string>();
+            foreach (var aggregator in logAggregators)
+            {
+                aggregator.RegisterMessageQueue(_messages);
+            }
         }
 
         /// <summary>
@@ -49,7 +53,7 @@ namespace DatadogTakeHome.Core
                 _logger.Log(LogLevel.Error, null, $"Could not parse request {logLine.Request}. Ignoring.");
                 return;
             }
-            
+
             long previousTimestamp = _maxTimestampSeenSoFar;
             _maxTimestampSeenSoFar = Math.Max(_maxTimestampSeenSoFar, logLine.TimestampSeconds);
 
@@ -62,11 +66,6 @@ namespace DatadogTakeHome.Core
                 }
 
                 _logAggregator.Collect(logLine, parsedRequest);
-
-                if (_logAggregator.HasMessage())
-                {
-                    _messages.Enqueue(_logAggregator.GetMessage());
-                }
             }
         }
 
