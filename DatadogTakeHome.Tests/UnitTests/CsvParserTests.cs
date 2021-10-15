@@ -43,12 +43,26 @@ namespace DatadogTakeHome.Tests.UnitTests
         }
 
         [Fact]
-        public void WhenTheFileDoesNotHaveHeaders_CsvParser_WillNotParse()
+        public void WhenTheFileDoesNotHaveHeaders_CsvParser_WillParseSuccessFully()
         {
             StringBuilder sb = new StringBuilder();
             sb.Append(@"""10.0.0.2"",""-"",""apache"",1549573860,""GET / api / user HTTP / 1.0"",200,1234" + Environment.NewLine);
 
-            Assert.ThrowsAny<Exception>(() => _parser.Parse(GetMemoryStream(sb)).ToList());
+            var result = _parser.Parse(GetMemoryStream(sb)).ToList();
+
+            Assert.Single(result);
+            Assert.Equal(
+                new LogLine()
+                {
+                    Authuser = "apache",
+                    HttpStatusCode = 200,
+                    RemoteHost = "10.0.0.2",
+                    Request = "GET / api / user HTTP / 1.0",
+                    RequestSizeBytes = 1234,
+                    Rfc931 = "-",
+                    TimestampSeconds = 1549573860
+                },
+                result[0]);
         }
 
         [Fact]
