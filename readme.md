@@ -94,7 +94,7 @@ When inserting data, we take the timestamp % 120, and this is our index to inser
 
 ## If I had more time to improve the assignment
 
-- I would rewrite this in a Web application, add a front end on top of it.
+- I would add a web application with an API to receive events sent by this application, and add a frontend monitoring section.
 - I would investigate the [Actor Model](https://en.wikipedia.org/wiki/Actor_model) which could suit us fine for this use case. For example, each alert and report would be an actor, the parser would also be an actor and send messages to alerts & reports. Then there would be a display actor that receives "print" messages and prints them.
 - Improve the statistics: add a request rate per second for each relevant counter.
 - If I had more alerts / reports, and the granularity is alwyas to the second, I would try to pre compute aggregated data to the second. For example, we could have a system where when you see the Nth timestamp, you can send downstream the aggregated data for the Nth - 10 timestamp. This way, the alerts wouldn't be responsible for aggregating each "log line".
