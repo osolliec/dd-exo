@@ -96,7 +96,7 @@ When inserting data, we take the timestamp % 120, and this is our index to inser
 
 - Add a web application with an API to receive events sent by this application, and add a frontend monitoring section.
 - Add a request rate per second for each relevant counter.
-- If I had more alerts / reports, and the granularity is always to the second, I would pre-aggregate data to the second. For example, we could have a system where when you see the Nth timestamp, you can send downstream the aggregated data for the Nth - 10 second. This way, the alerts wouldn't be responsible for aggregating each "log line".
+- If I had more alert types / report types, I would pre-aggregate data to the second. For example, we could have a system where when you see the Nth timestamp, you can send downstream the aggregated data for the Nth - 10 second. This way, the alerts wouldn't be responsible for aggregating each "log line".
 - If it were a real product, have a look at alerting APIs (OpsGenie / PagerDuty) or even just slack to trigger the alerts there.
 - YAGNI for this assignment: I would find a way to put common code for alerts and reports in an abstract class; for example the alerts that should send a message only the first time they fire. For this assignment there's only one of each so it doesn't really make sense.
 - I would investigate the [Actor Model](https://en.wikipedia.org/wiki/Actor_model) which could suit us fine for this use case. For example, each alert and report would be an actor, the parser would also be an actor and send messages to alerts & reports. Then there would be a display actor that receives "print" messages and prints them.
