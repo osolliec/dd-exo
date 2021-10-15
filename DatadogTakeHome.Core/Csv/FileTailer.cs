@@ -1,5 +1,6 @@
 ﻿using CsvHelper;
 using CsvHelper.Configuration;
+using DatadogTakeHome.Core.Logger;
 using DatadogTakeHome.Core.Model;
 using System;
 using System.Collections.Generic;
@@ -10,6 +11,13 @@ namespace DatadogTakeHome.Core.Csv
 {
     public class FileTailer
     {
+        private readonly ILogger _logger;
+
+        public FileTailer(ILogger logger)
+        {
+            _logger = logger;
+        }
+
         /// <summary>
         /// Continuously read the file, eg like tail -f.
         /// This action is blocking.
@@ -28,6 +36,8 @@ namespace DatadogTakeHome.Core.Csv
             }
 
             var fileName = Path.GetFileName(path);
+
+            _logger.Log(LogLevel.Information, null, $"Going to watch file {fileName} in directory {directory}");
 
             var waitHandle = new AutoResetEvent(false);
 

@@ -84,7 +84,7 @@ namespace DatadogTakeHome.Core.Csv
                 throw new InvalidOperationException($"File {path} not found");
             }
 
-            var tailer = new FileTailer();
+            var tailer = new FileTailer(_logger);
 
             return tailer.ContinuouslyReadFile(path, _config);
         }
