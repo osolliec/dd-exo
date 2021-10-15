@@ -5,9 +5,9 @@ This project is my (Olivier Solliec) take home assignment for my datadog applica
 
 ## Using docker
 
-    docker build -t takehome .
-    docker run --name takehome -td takehome
-    cat sample_csv.txt | docker exec -i takehome /app/out/DatadogTakeHome
+    sudo docker build -t takehome .
+    sudo docker run --name takehome -td takehome
+    cat sample_csv.txt | sudo docker exec -i takehome /app/out/DatadogTakeHome
 
 ## Not using docker
 
