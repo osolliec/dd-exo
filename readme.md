@@ -16,6 +16,10 @@ Prerequisite: [.NET sdk 5.0](https://dotnet.microsoft.com/download/dotnet/5.0)
     dotnet publish --output out
     cat sample_csv.txt | out/DatadogTakeHome
 
+To launch tests
+
+    dotnet test
+
 ## Usage
 
     ./DatadogTakeHome -h
