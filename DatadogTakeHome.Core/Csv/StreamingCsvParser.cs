@@ -28,7 +28,10 @@ namespace DatadogTakeHome.Core.Csv
             _logger = logger;
             _config = new CsvConfiguration(CultureInfo.InvariantCulture)
             {
-                HasHeaderRecord = true,
+                // Pretend the file does not have a header.
+                // Even though the sample has a header, it's easier for the tailer if we skip it altogether
+                // The first row will be a "bad record" and will be ignored.
+                HasHeaderRecord = false,
                 ReadingExceptionOccurred = OnReadingException,
                 BadDataFound = OnBadDataFound,
                 MissingFieldFound = OnMissingField
@@ -48,7 +51,14 @@ namespace DatadogTakeHome.Core.Csv
 
         private bool OnReadingException(ReadingExceptionOccurredArgs args)
         {
-            _logger.Log(LogLevel.Error, null, $"Found bad csv record at row {args.Exception?.Context?.Parser?.Row}: {args.Exception?.Context?.Parser?.RawRecord}. Ignoring");
+            var rawRecord = args.Exception?.Context?.Parser?.RawRecord;
+            if (rawRecord != null && rawRecord.StartsWith("\"remotehost\""))
+            {
+                // Ignore the header record.
+                return false;
+            }
+
+            _logger.Log(LogLevel.Error, null, $"Found bad csv record at row {args.Exception?.Context?.Parser?.Row}: {rawRecord}. Ignoring");
             _logger.Log(LogLevel.Error, args.Exception, "");
 
             // prevent the exception from throwing; here we could count the errors and raise an alert if it exceeds a threshol.
@@ -74,7 +84,9 @@ namespace DatadogTakeHome.Core.Csv
                 throw new InvalidOperationException($"File {path} not found");
             }
 
-            return Parse(new FileStream(path, FileMode.Open));
+            var tailer = new FileTailer();
+
+            return tailer.ContinuouslyReadFile(path, _config);
         }
 
         public IEnumerable<LogLine> Parse(Stream stream)
