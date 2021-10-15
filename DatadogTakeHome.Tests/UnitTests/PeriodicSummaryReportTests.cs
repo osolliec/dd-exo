@@ -9,8 +9,6 @@ namespace DatadogTakeHome.Tests.UnitTests
     /** In the real world, I would not test result against the message string which may change often. I did this for the sake of simplicity in this file. **/
     public class PeriodicSummaryReportTests
     {
-
-
         [Fact]
         public void WhenWindowHasClosed_TheReport_ShouldHoldAMessage()
         {
@@ -114,7 +112,7 @@ namespace DatadogTakeHome.Tests.UnitTests
             var message = report.GetMessage();
 
             // the window is bigger than requested size, but it's by design.
-            Assert.Contains("REPORT - FROM 1970-01-01 00:00:01Z TO 1970-01-01 00:00:12Z EXCLUSIVE", message);
+            Assert.Contains("REPORT - FROM 1970-01-01 00:00:01Z TO 1970-01-01 00:00:11Z", message);
             Assert.Contains("TOTAL HITS: 1", message);
         }
 
@@ -194,7 +192,7 @@ namespace DatadogTakeHome.Tests.UnitTests
             report.AdvanceTime(3);
 
             Assert.True(StringEqualWithoutSpace(
-                @"REPORT - FROM 1970-01-01 00:00:01Z TO 1970-01-01 00:00:03Z EXCLUSIVE
+                @"REPORT - FROM 1970-01-01 00:00:01Z TO 1970-01-01 00:00:02Z
                 TOTAL HITS: 210 
                 TOP 5 SECTIONS HITS: 
                 SECTION: /api-20 HITS: 20 
@@ -227,7 +225,7 @@ namespace DatadogTakeHome.Tests.UnitTests
             report.AdvanceTime(3);
             Assert.True(
                 StringEqualWithoutSpace(
-                    @"REPORT - FROM 1970-01-01 00:00:01Z TO 1970-01-01 00:00:03Z EXCLUSIVE
+                    @"REPORT - FROM 1970-01-01 00:00:01Z TO 1970-01-01 00:00:02Z
                     TOTAL HITS: 2 
                     TOP 5 SECTIONS HITS: 
                     SECTION: /api HITS: 2 

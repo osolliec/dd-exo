@@ -83,7 +83,7 @@ namespace DatadogTakeHome.Core.Stats
             else if (maxTimestamp - _windowStartTime >= _windowDurationSeconds)
             // our report is overdue, we need to publish it
             {
-                BuildReport(_windowStartTime, maxTimestamp);
+                BuildReport(_windowStartTime, maxTimestamp - 1); // -1 is because there is no log collect about maxTimestamp yet. It will be part of the next window.
                 // Reset the container's contents.
                 _logContainer.Clear();
 
@@ -114,10 +114,10 @@ namespace DatadogTakeHome.Core.Stats
         /// <param name="windowEndTime"></param>
         private void BuildReport(long windowStartTime, long windowEndTime)
         {
-            var previousInclusive = DateFormatter.FormatDate(windowStartTime);
-            var currentExclusive = DateFormatter.FormatDate(windowEndTime);
+            var windowStart = DateFormatter.FormatDate(windowStartTime);
+            var windowEnd = DateFormatter.FormatDate(windowEndTime);
 
-            _message.Append($"REPORT - FROM {previousInclusive} TO {currentExclusive} EXCLUSIVE\n");
+            _message.Append($"REPORT - FROM {windowStart} TO {windowEnd}\n");
             _message.Append($"TOTAL HITS: {_logContainer.GetTotalHits()} \n");
             _message.Append("TOP 5 SECTIONS HITS: \n");
 
