@@ -66,7 +66,8 @@ I'm assuming that it's okay for the system to have a granularity to the second -
 
 ## Architecture
 
-- The **StreamingCsvParser** is the class responsible for reading the file / stdin input line by line.
+- The **StreamingCsvParser** is responsible for reading the file / stdin input line by line.
+- The **FileTailer** is responsible for reading a file, in a blocking fashion.
 - The **Orchestrator** is responsible for the passage of time and will keep the latest seen timestamp so far. It will pass this along with the parsed csv lines to its list of ILogAggregator.
 - The **ILogAggregator** is the interface that both alerts and reports must extend to fit in the program
 - The **AverageHitAlert** class is the single alert implemented to fire when the hit threshold has been surpassed for 120 seconds.
