@@ -58,6 +58,11 @@ namespace DatadogTakeHome
             mainCommand.Invoke(args);
         }
 
+        /// <summary>
+        /// Non blocking. Reads from STDIN.
+        /// </summary>
+        /// <param name="logger"></param>
+        /// <param name="orchestrator"></param>
         static void ReadFromStdin(ConsoleLogger logger, Orchestrator orchestrator)
         {
             Console.WriteLine("Starting to read from STDIN. If you still see this, the program needs input.");
@@ -74,6 +79,12 @@ namespace DatadogTakeHome
             }
         }
 
+        /// <summary>
+        /// Blocking. Will continuously read from a file that is appended to.
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="logger"></param>
+        /// <param name="orchestrator"></param>
         static void ReadFromFile(string path, ILogger logger, Orchestrator orchestrator)
         {
             if (!File.Exists(path))
@@ -96,7 +107,7 @@ namespace DatadogTakeHome
 
         static RootCommand BuildCommand()
         {
-            return new RootCommand("Reads from either http log csv file or STDIN, and inputs statistics and alerts. If no file was specified, will read from STDIN. Both options are blocking.")
+            return new RootCommand("Reads from either http log csv file or STDIN, and inputs statistics and alerts. If no file was specified, will read from STDIN. Reading from the file is blocking.")
             {
                 new Option<int>(
                     new string[] { "--alert-window-seconds" },
@@ -112,7 +123,6 @@ namespace DatadogTakeHome
                     description: "The window size of the report in seconds."),
                 new Option<string>(
                     "--file",
-                    getDefaultValue: () => string.Empty,
                     description: "The path to the file to be parsed. If no file, will default to STDIN."
                 )
             };
