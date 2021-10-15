@@ -9,7 +9,7 @@ namespace DatadogTakeHome.Core.Logger
     {
         public void Log(LogLevel level, Exception ex = null, string message = "")
         {
-            string formatted = $"{message} {ex?.Message}";
+            string formatted = $"{message} {ex?.Message + " " + ex?.StackTrace}";
             switch(level)
             {
                 case LogLevel.Error:
