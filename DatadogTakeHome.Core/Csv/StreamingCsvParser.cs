@@ -29,7 +29,7 @@ namespace DatadogTakeHome.Core.Csv
             _config = new CsvConfiguration(CultureInfo.InvariantCulture)
             {
                 // Pretend the file does not have a header.
-                // Even though the sample has a header, it's easier for the tailer if we skip it altogether
+                // Even though the sample has a header, it's easier for the FileTailer if we skip it altogether.
                 // The first row will be a "bad record" and will be ignored.
                 HasHeaderRecord = false,
                 ReadingExceptionOccurred = OnReadingException,
@@ -38,30 +38,35 @@ namespace DatadogTakeHome.Core.Csv
             };
         }
 
-        private void OnMissingField(MissingFieldFoundArgs args)
-        {
-            // same as below, necessary to declare but we don't need to do anything here.
-        }
-
         private void OnBadDataFound(BadDataFoundArgs args)
         {
             // gets called when a field is badly formed (string instead of number).
             // We need it even though we don't use it otherwise the OnReadingException below does not get called.
         }
 
+        private void OnMissingField(MissingFieldFoundArgs args)
+        {
+            // same as above, necessary to declare but we don't need to do anything here.
+        }
+
+        /// <summary>
+        /// We need to override this method to ignore badly formed rows instead of having the program throw an exception and stop.
+        /// </summary>
+        /// <param name="args"></param>
+        /// <returns></returns>
         private bool OnReadingException(ReadingExceptionOccurredArgs args)
         {
             var rawRecord = args.Exception?.Context?.Parser?.RawRecord;
             if (rawRecord != null && rawRecord.StartsWith("\"remotehost\""))
             {
-                // Ignore the header record.
+                // Ignore the header record, it is technically not a bad record.
                 return false;
             }
 
             _logger.Log(LogLevel.Error, null, $"Found bad csv record at row {args.Exception?.Context?.Parser?.Row}: {rawRecord}. Ignoring");
             _logger.Log(LogLevel.Error, args.Exception, "");
 
-            // prevent the exception from throwing; here we could count the errors and raise an alert if it exceeds a threshol.
+            // prevent the exception from throwing; here we could count the errors and raise an alert if it exceeds a threshold.
             return false;
         }
 

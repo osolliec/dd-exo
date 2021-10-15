@@ -24,6 +24,10 @@ namespace DatadogTakeHome.Core.Datastructures
             return key % _buffer.Length;
         }
 
+        /// <summary>
+        /// Add 1 to the bucket that this key belongs to.
+        /// </summary>
+        /// <param name="key"></param>
         public void Increment(long key)
         {
             long index = Index(key);
@@ -32,6 +36,11 @@ namespace DatadogTakeHome.Core.Datastructures
 
             _total++;
         }
+
+        /// <summary>
+        /// Resets the current bucket value and substracts it from the total.
+        /// </summary>
+        /// <param name="key"></param>
         public void CloseBucket(long key)
         {
             long index = Index(key);

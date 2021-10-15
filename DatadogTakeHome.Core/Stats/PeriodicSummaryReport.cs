@@ -27,7 +27,7 @@ namespace DatadogTakeHome.Core.Stats
         private readonly int _windowDurationSeconds;
 
         /// <summary>
-        /// The container to aggregate the raw CSV data.
+        /// The container that aggregates the raw CSV data.
         /// </summary>
         private LogContainer _logContainer;
 
@@ -54,9 +54,7 @@ namespace DatadogTakeHome.Core.Stats
         /// <summary>
         /// Aggregate the raw CSV data into a human friendly display message.
         ///
-        /// The way it works is the following:
-        /// 1° Checks whether we can publish the message (in other words, if the time for next report is overdue).
-        /// 2° Aggregates data if it is not too late (we reject messages that are older than the current window of time)
+        /// It will only aggregate data if the data is not too late (we reject messages that are older than the current window of time)
         ///
         /// </summary>
         /// <param name="logLine"></param>
@@ -65,14 +63,20 @@ namespace DatadogTakeHome.Core.Stats
         public void Collect(LogLine logLine, ParsedRequest parsedRequest)
         {
             // We ignore messages that are too late (before this window start time). Otherwise it would make our reports inaccurate.
-            if (logLine.TimestampSeconds >= _windowStartTime)
+            if (logLine.TimestampSeconds < _windowStartTime)
             {
-                _logContainer.CollectSectionHits(parsedRequest.Section);
-                _logContainer.CollectStatusCode(logLine.HttpStatusCode);
-                _logContainer.CollectTotalHits();
+                return;
             }
+
+            _logContainer.CollectSectionHits(parsedRequest.Section);
+            _logContainer.CollectStatusCode(logLine.HttpStatusCode);
+            _logContainer.CollectTotalHits();
         }
 
+        /// <summary>
+        /// Advance the timestamp, and if the report is due, publish it.
+        /// </summary>
+        /// <param name="maxTimestamp"></param>
         public void AdvanceTime(long maxTimestamp)
         {
             if (_windowStartTime == -1)
@@ -97,7 +101,7 @@ namespace DatadogTakeHome.Core.Stats
         }
 
         /// <summary>
-        /// Store into the StringBuilder the information contained in the LogContainer.
+        /// Publish into the messageQueue the message with the aggregated statistics.
         /// </summary>
         /// <param name="windowStartTime"></param>
         /// <param name="windowEndTime"></param>
@@ -165,6 +169,7 @@ namespace DatadogTakeHome.Core.Stats
             while (priorityQueue.Size > 0)
             {
                 var min = priorityQueue.ExtractMin();
+                // reverse the queue to have the max first.
                 result.Insert(0, min);
             }
 

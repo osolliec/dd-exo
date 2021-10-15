@@ -37,7 +37,7 @@ namespace DatadogTakeHome.Core.Alerts
         }
 
         /// <summary>
-        /// Holds the first timestamp our program sees. It's necessary to not fire the alert until a complete window of time has been seen.
+        /// Holds the first timestamp our program sees. It's necessary to not fire the alert until a first complete window of time has been seen.
         /// </summary>
         private long _startTimestamp = -1;
 
@@ -71,10 +71,12 @@ namespace DatadogTakeHome.Core.Alerts
         public void Collect(LogLine logLine, ParsedRequest parsedRequest)
         {
             // only take into account messages that are not too late
-            if (logLine.TimestampSeconds > _previousMaxTimestamp - _windowDurationSeconds)
+            if (logLine.TimestampSeconds <= _previousMaxTimestamp - _windowDurationSeconds)
             {
-                _buffer.Increment(logLine.TimestampSeconds);
+                return;
             }
+
+            _buffer.Increment(logLine.TimestampSeconds);
         }
 
         /// <summary>
@@ -94,7 +96,7 @@ namespace DatadogTakeHome.Core.Alerts
         }
 
         /// <summary>
-        /// Possibly changes the alert state and write a message, but prevents to write the same message twice.
+        /// Possibly changes the alert state and write a message (FIRING/RESOLVED). Does not send the same message twice.
         /// </summary>
         /// <param name="maxTimestamp"></param>
         private void PossiblyChangeAlertState(long maxTimestamp)
@@ -132,12 +134,14 @@ namespace DatadogTakeHome.Core.Alerts
 
         private void CloseOldBuckets(long newMaxTimestamp)
         {
-            if (_previousMaxTimestamp > -1)
+            if (_previousMaxTimestamp == -1)
             {
-                // because we can handle low traffic websites where we don't see all timestamp increments, we can't just close the latest bucket.
-                // We must close all buckets between the previous timestamp and the current one.
-                _buffer.CloseBuckets(_previousMaxTimestamp + 1, newMaxTimestamp);
+                return;
             }
+
+            // because we can handle low traffic websites where we don't see all timestamp increments, we can't just close the latest bucket.
+            // We must close all buckets between the previous timestamp and the current one.
+            _buffer.CloseBuckets(_previousMaxTimestamp + 1, newMaxTimestamp);
         }
 
         /// <summary>
@@ -154,6 +158,11 @@ namespace DatadogTakeHome.Core.Alerts
             _previousMaxTimestamp = maxTimestamp;
         }
 
+        /// <summary>
+        /// Build the message and append it to the registered message queue.
+        /// </summary>
+        /// <param name="firing"></param>
+        /// <param name="triggerTime"></param>
         private void BuildMessage(bool firing, long triggerTime)
         {
             if (_messageQueue == null)

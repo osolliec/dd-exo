@@ -7,7 +7,7 @@ namespace DatadogTakeHome.Core.Csv
     public interface ICsvParser
     {
         /// <summary>
-        /// Reads a csv file and outputs its content.
+        /// Continuously reads a csv file and outputs its content.
         /// </summary>
         /// <param name="path">The path of the CSV file to read.</param>
         /// <returns></returns>

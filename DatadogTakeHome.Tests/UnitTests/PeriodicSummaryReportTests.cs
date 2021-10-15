@@ -11,7 +11,7 @@ namespace DatadogTakeHome.Tests.UnitTests
     public class PeriodicSummaryReportTests
     {
         [Fact]
-        public void WhenWindowHasClosed_TheReport_ShouldHoldAMessage()
+        public void WhenWindowHasClosed_TheReport_ShouldPublishAMessage()
         {
             var report = BuildReport(out var messageQueue);
             var logLine = BuildLogLine(1);
@@ -25,26 +25,6 @@ namespace DatadogTakeHome.Tests.UnitTests
             report.AdvanceTime(3);
 
             Assert.Single(messageQueue);
-        }
-
-        [Fact]
-        public void WhenReceivingLateEventsThatExceedWindowTime_TheReport_ShouldIgnoreThoseLateEvents()
-        {
-            var report = BuildReport(out var messageQueue);
-            var parsedRequest = BuildParsedRequest();
-
-            report.AdvanceTime(1);
-
-            // valid events
-            report.Collect(BuildLogLine(1), parsedRequest);
-            report.Collect(BuildLogLine(2), parsedRequest);
-
-            report.AdvanceTime(3);
-
-            // lateEvent, arrived after the bucket has closed.
-            report.Collect(BuildLogLine(1), parsedRequest);
-
-            Assert.Contains("TOTAL HITS: 2", messageQueue.Dequeue());
         }
 
         [Fact]
@@ -67,11 +47,32 @@ namespace DatadogTakeHome.Tests.UnitTests
             Assert.Contains("TOTAL HITS: 2", messageQueue.Dequeue());
         }
 
+        [Fact]
+        public void WhenReceivingLateEventsThatExceedWindowTime_TheReport_ShouldIgnoreThoseLateEvents()
+        {
+            var report = BuildReport(out var messageQueue);
+            var parsedRequest = BuildParsedRequest();
+
+            report.AdvanceTime(1);
+
+            // valid events
+            report.Collect(BuildLogLine(1), parsedRequest);
+            report.Collect(BuildLogLine(2), parsedRequest);
+
+            // close the window
+            report.AdvanceTime(3);
+
+            // lateEvent, arrived after the bucket has closed.
+            report.Collect(BuildLogLine(1), parsedRequest);
+
+            Assert.Contains("TOTAL HITS: 2", messageQueue.Dequeue());
+        }
+
         /// <summary>
-        /// This can happen when the traffic is low and we don't have every timestamp in the logs.
+        /// Bigger window than requested can happen when the traffic is low and we don't have every timestamp in the logs.
         /// </summary>
         [Fact]
-        public void WhenMessagesDontHaveConsecutiveTimestamps_TheReport_ShouldStillFireAWindowEvenThoughItsBiggerThanRequested()
+        public void WhenMessagesDontHaveConsecutiveTimestamps_TheReport_ShouldStillPublishAMessage_EvenThoughTheWindowIsBiggerThanRequested()
         {
             var report = BuildReport(out var messageQueue);
             var parsedRequest = BuildParsedRequest();
@@ -201,6 +202,7 @@ namespace DatadogTakeHome.Tests.UnitTests
             report.Collect(BuildLogLine(1, 503), parsedRequest);
 
             report.AdvanceTime(3);
+
             Assert.True(
                 StringEqualWithoutSpace(
                     @"REPORT - FROM 1970-01-01 00:00:01Z TO 1970-01-01 00:00:02Z
@@ -218,6 +220,12 @@ namespace DatadogTakeHome.Tests.UnitTests
                 );
         }
 
+        /// <summary>
+        /// Build a report with an empty messageQueue.
+        /// </summary>
+        /// <param name="messageQueue"></param>
+        /// <param name="windowSize"></param>
+        /// <returns></returns>
         private PeriodicSummaryReport BuildReport(out Queue<string> messageQueue, int windowSize = 2)
         {
             var report = new PeriodicSummaryReport(windowSize);

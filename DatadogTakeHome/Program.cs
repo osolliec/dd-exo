@@ -32,8 +32,9 @@ namespace DatadogTakeHome
                     new HttpRequestParser(),
                     logger,
                     new List<ILogAggregator> {
-                    new PeriodicSummaryReport(reportWindowSeconds),
-                    new AverageHitAlert(alertWindowSeconds, alertAverageThreshold),
+                        // add here new reports or alerts
+                        new PeriodicSummaryReport(reportWindowSeconds),
+                        new AverageHitAlert(alertWindowSeconds, alertAverageThreshold),
                     }
                 );
 
@@ -65,7 +66,7 @@ namespace DatadogTakeHome
         /// <param name="orchestrator"></param>
         static void ReadFromStdin(ConsoleLogger logger, Orchestrator orchestrator)
         {
-            Console.WriteLine("Starting to read from STDIN. If you still see this, the program needs input.");
+            logger.Log(LogLevel.Information, null, "Starting to read from STDIN. If you still see this, the program needs input.");
             using (var inputStream = Console.OpenStandardInput())
             using (var parser = new StreamingCsvParser(logger))
             {
@@ -89,7 +90,7 @@ namespace DatadogTakeHome
         {
             if (!File.Exists(path))
             {
-                logger.Log(LogLevel.Information, null, $"File not found {path}, aborting");
+                logger.Log(LogLevel.Information, null, $"File  {path} not found, aborting");
                 System.Environment.Exit(-1);
             }
 
@@ -105,6 +106,10 @@ namespace DatadogTakeHome
             }
         }
 
+        /// <summary>
+        /// Build the Command that parses the args. Visit https://github.com/dotnet/command-line-api for more info.
+        /// </summary>
+        /// <returns></returns>
         static RootCommand BuildCommand()
         {
             return new RootCommand("Reads from either http log csv file or STDIN, and inputs statistics and alerts. If no file was specified, will read from STDIN. Reading from the file is blocking.")

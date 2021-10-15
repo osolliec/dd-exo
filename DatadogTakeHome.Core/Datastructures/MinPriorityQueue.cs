@@ -7,10 +7,12 @@ using System.Threading.Tasks;
 namespace DatadogTakeHome.Core.Datastructures
 {
     /// <summary>
-    /// C# doesn't ship its own PriorityQueue (yet: it should arrive in .NET CORE 6).
+    /// C# doesn't ship its own PriorityQueue yet (it should arrive in .NET 6 https://docs.microsoft.com/en-us/dotnet/api/system.collections.generic.priorityqueue-2?view=net-6.0).
+    /// We should refactor and use the Built-In once .NET 6 releases.
+    ///
     /// I want to write one to reduce the complexity of the ordering of the section hits; instead of o(nlogn) by sorting the whole section list, we can go down to o(nlogk)
     ///
-    /// It's based on a max binary heap, implemented with an array of a tuple (int, T), int being the priority of the object.
+    /// It's based on a min binary heap, implemented with an array of a tuple (long, T), the first item being the priority of the object.
     /// </summary>
     /// <typeparam name="T"></typeparam>
     public class MinPriorityQueue<T>
@@ -40,6 +42,36 @@ namespace DatadogTakeHome.Core.Datastructures
 
             return _tree[0];
         }
+        public void Insert(long priority, T value)
+        {
+            if (_size == _capacity)
+            {
+                throw new InvalidOperationException("full");
+            }
+
+            _tree[_size] = (priority, value);
+
+            HeapifyUp(_size);
+
+            _size++;
+        }
+
+        public (long, T) ExtractMin()
+        {
+            (long, T) min = _tree[0];
+
+            // put the rightmost element at the top
+            Swap(0, _size - 1);
+
+            // "empty" the rightmost element
+            _tree[_size - 1] = (_priorityFillValue, default(T));
+
+            _size--;
+
+            HeapifyDown(0);
+
+            return min;
+        }
 
         private static int Parent(int i)
         {
@@ -63,19 +95,7 @@ namespace DatadogTakeHome.Core.Datastructures
             _tree[i2] = temp;
         }
 
-        public void Insert(long priority, T value)
-        {
-            if (_size == _capacity)
-            {
-                throw new InvalidOperationException("full");
-            }
 
-            _tree[_size] = (priority, value);
-
-            HeapifyUp(_size);
-
-            _size++;
-        }
 
         /// <summary>
         /// Foreach parent, if value is smaller than parent, swap value with parent
@@ -124,24 +144,6 @@ namespace DatadogTakeHome.Core.Datastructures
                 Swap(smaller, index);
                 HeapifyDown(smaller);
             }
-        }
-
-
-        public (long, T) ExtractMin()
-        {
-            (long, T) min = _tree[0];
-
-            // put the rightmost element at the top
-            Swap(0, _size - 1);
-
-            // "empty" the rightmost element
-            _tree[_size - 1] = (_priorityFillValue, default(T));
-
-            _size--;
-
-            HeapifyDown(0);
-
-            return min;
         }
     }
 }

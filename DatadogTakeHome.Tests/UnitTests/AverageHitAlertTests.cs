@@ -8,7 +8,7 @@ namespace DatadogTakeHome.Tests.UnitTests
     public class AverageHitAlertTests
     {
         [Fact]
-        public void WhenThereIsNotEnoughDataButThresholdIsSurpassed_TheAlert_ShouldNotFire()
+        public void WhenTheFirstWindowOfTheAlertHasNotClosed_ButThresholdIsSurpassed_TheAlert_ShouldNotFire()
         {
             var alert = BuildEmptyAlert(out var messageQueue);
 
@@ -21,12 +21,12 @@ namespace DatadogTakeHome.Tests.UnitTests
 
             alert.AdvanceTime(2);
 
-            // the average for this size 2 alert is 5, which is above the trigger. We still don't fire the alert because not enough time has passed.
+            // the average for this size 2 alert is 5, which is above the trigger. We still don't fire the alert because the first window of the alert has not closed.
             Assert.Empty(messageQueue);
         }
 
         [Fact]
-        public void WhenEnoughDataHasBeenGatheredAndThresholdIsSurpassed_TheAlert_ShouldFire()
+        public void WhenTheFirstWindowOfTheAlertHasClosed_AndThresholdIsSurpassed_TheAlert_ShouldFire()
         {
             var alert = BuildEmptyAlert(out var messageQueue);
 
@@ -37,7 +37,7 @@ namespace DatadogTakeHome.Tests.UnitTests
                 alert.Collect(BuildLogLine(i % 5), BuildParsedRequest());
             }
 
-            // we see for the first time the timestamp 3
+            // we see for the first time the timestamp 3, this closes the first window of size 2
             alert.AdvanceTime(3);
 
             // the average for this size 2 alert is 5 (10 events / 2).
@@ -47,7 +47,7 @@ namespace DatadogTakeHome.Tests.UnitTests
         }
 
         [Fact]
-        public void WhenEnoughDataHasBeenGatheredButThresholdIsNOTSurpassed_TheAlert_ShouldNOTFire()
+        public void WhenTheFirstWindowOfTheAlertHasClosed_ButThresholdIsNOTSurpassed_TheAlert_ShouldNOTFire()
         {
             var alert = BuildEmptyAlert(out var messageQueue);
 
@@ -56,6 +56,7 @@ namespace DatadogTakeHome.Tests.UnitTests
             alert.Collect(BuildLogLine(1), BuildParsedRequest());
             alert.Collect(BuildLogLine(2), BuildParsedRequest());
 
+            // close the first window
             alert.AdvanceTime(3);
 
             Assert.Equal(AverageHitAlert.AlertStatus.NOT_FIRING, alert.Status);
@@ -63,7 +64,7 @@ namespace DatadogTakeHome.Tests.UnitTests
         }
 
         [Fact]
-        public void WhenNotResolved_TheAlert_ShouldNotFireASecondMessage()
+        public void WhenNotResolved_TheAlert_ShouldNotPublishASecondMessage()
         {
             // the alert is already firing
             var alert = BuildFiringAlert(out var messageQueue);
@@ -82,7 +83,7 @@ namespace DatadogTakeHome.Tests.UnitTests
         }
 
         [Fact]
-        public void WhenResolved_TheAlert_ShouldSendAMessage()
+        public void WhenResolved_TheAlert_ShouldSendAResolvedMessage()
         {
             var alert = BuildFiringAlert(out var messageQueue);
 
@@ -130,7 +131,7 @@ namespace DatadogTakeHome.Tests.UnitTests
 
             for (int i = 0; i < 4; i++)
             {
-                // those events should not be collected, because they would write in the same slot as the events of timestamp 3.
+                // events of timestamp 1 should not be collected, because they would write in the same slot as the events of timestamp 3.
                 alert.Collect(BuildLogLine(1), BuildParsedRequest());
             }
 
@@ -167,7 +168,7 @@ namespace DatadogTakeHome.Tests.UnitTests
         }
 
         /// <summary>
-        /// Build an alert that is firing and has a message to collect.
+        /// Build a non firing alert and an empty message queue.
         /// </summary>
         /// <returns></returns>
         private AverageHitAlert BuildEmptyAlert(out Queue<string> messageQueue)

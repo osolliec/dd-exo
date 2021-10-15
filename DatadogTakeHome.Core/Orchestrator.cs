@@ -9,7 +9,7 @@ namespace DatadogTakeHome.Core
     /// <summary>
     /// The orchestrator ingests a log line and dispatches it to the list of alerts & reports it holds.
     /// It's responsible for making the time advance, it does so by keeping the max timestamp seen so far.
-    /// It will also print messages when there are some available.
+    /// It will also print messages when there are any available.
     /// </summary>
     public class Orchestrator
     {
@@ -31,10 +31,13 @@ namespace DatadogTakeHome.Core
         public Orchestrator(IHttpRequestParser requestParser, ILogger logger, IList<ILogAggregator> logAggregators)
         {
             _httpRequestParser = requestParser;
-            _logAggregators = logAggregators;
             _logger = logger;
+            _logAggregators = logAggregators;
+
             _maxTimestampSeenSoFar = -1;
+
             _messages = new Queue<string>();
+
             foreach (var aggregator in logAggregators)
             {
                 aggregator.RegisterMessageQueue(_messages);
@@ -61,7 +64,7 @@ namespace DatadogTakeHome.Core
             {
                 if (_maxTimestampSeenSoFar > previousTimestamp)
                 {
-                    // mark the passage of time so the downstream operators can close their window.
+                    // Advance the time so the downstream operators can close their window.
                     _logAggregator.AdvanceTime(_maxTimestampSeenSoFar);
                 }
 

@@ -43,7 +43,7 @@ namespace DatadogTakeHome.Tests.UnitTests
         }
 
         [Fact]
-        public void WhenTheFileDoesNotHaveHeaders_CsvParser_WillParseSuccessFully()
+        public void WhenTheFileDoesNotHaveHeaders_CsvParser_WillSuccessfullyParse()
         {
             StringBuilder sb = new StringBuilder();
             sb.Append(@"""10.0.0.2"",""-"",""apache"",1549573860,""GET / api / user HTTP / 1.0"",200,1234" + Environment.NewLine);

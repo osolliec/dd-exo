@@ -4,7 +4,7 @@ using System;
 namespace DatadogTakeHome.Core.Model
 {
     /// <summary>
-    /// Represents a csv stream line.
+    /// Represents a csv file line.
     /// </summary>
     public class LogLine
     {

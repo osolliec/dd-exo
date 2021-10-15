@@ -3,6 +3,9 @@ using System;
 
 namespace DatadogTakeHome.Core.RequestParser
 {
+    /// <summary>
+    /// Parses a request string.
+    /// </summary>
     public class HttpRequestParser : IHttpRequestParser
     {
         public bool TryParse(string s, out ParsedRequest parsedRequest)
